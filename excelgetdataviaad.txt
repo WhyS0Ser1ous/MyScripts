@@ -1,0 +1,38 @@
+Sub getempdata()
+
+    Const ADS_SCOPE_SUBTREE = 2
+    Set objRoot = GetObject("LDAP://rootDSE")
+    strDomain = objRoot.Get("defaultNamingContext")
+
+    Dim s As Worksheet
+    Set s = ThisWorkbook.Sheets("GetEmpData")
+    Lastrow = s.Cells(s.Rows.Count, "A").End(xlUp).Row
+    x = s.Cells(Lastrow, 1).Text
+    
+    Set objConnection = CreateObject("ADODB.Connection")
+    Set objCommand = CreateObject("ADODB.Command")
+    objConnection.Provider = "ADsDSOObject"
+    objConnection.Open "Active Directory Provider"
+    
+          Set objCommand.ActiveConnection = objConnection
+          
+          objCommand.CommandText = _
+          "SELECT name,adspath,physicalDeliveryOfficeName,division FROM 'LDAP://" & strDomain & "' WHERE objectClass='user' and employeeID='" & x & "'"
+          objCommand.Properties("Page Size") = 1000
+          objCommand.Properties("Searchscope") = ADS_SCOPE_SUBTREE
+          Set objRecordSet = objCommand.Execute
+          strlocation = objRecordSet.Fields("adspath").Value
+          Set objuser = GetObject(strlocation)
+          If objuser.AccountDisabled = True Then
+                s.Cells(Lastrow, 13).Value = "Disabled"
+          Else
+                s.Cells(Lastrow, 13).Value = "Active"
+          End If
+          If Not objRecordSet.BOF And Not objRecordSet.EOF Then
+                s.Cells(Lastrow, 2).Value = objRecordSet.Fields("name").Value
+                s.Cells(Lastrow, 3).Value = objRecordSet.Fields("physicalDeliveryOfficeName").Value
+                s.Cells(Lastrow, 4).Value = Date
+                s.Cells(Lastrow, 5).Value = objRecordSet.Fields("division").Value
+          End If
+
+End Sub

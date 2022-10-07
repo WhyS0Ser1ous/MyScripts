@@ -1,0 +1,3 @@
+$OUpath = 'OU=Production,OU=CB2,DC=phil,DC=convergys,DC=com'
+$ExportPath = 'C:\computers_in_CB2.csv'
+Get-ADComputer -Filter * -SearchBase $OUpath | Select-object DistinguishedName,DNSHostName,Name | Export-Csv -NoType $ExportPath

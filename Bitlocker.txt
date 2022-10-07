@@ -1,0 +1,40 @@
+How to:
+1.	Ping the machines that are tag as No on the encryption tab. Use script below:
+a.	$servers = Get-Content "C:\Users\jene9505\Documents\pcnames.txt"
+ForEach ($server in $servers) {
+Try {
+$IP = ((Test-Connection -ea stop -Count 1 -comp $server).IPV4Address).IPAddresstoString
+$x = "$server - UP - $($IP)"
+Write-Host($x) -ForegroundColor green
+}
+Catch {
+$y = "$server - Down - Offline"
+Write-Host($y) -ForegroundColor red
+}
+}
+
+2.	Then remediate those machines that are pingable/active:
+If a system is already encrypted but does not show the bitlocker password in AD, you could try the following:
+
+1.	Check if you can retrieve the recoverykey GUID from a powershell window with the following command line.
+(Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID 
+2.	If it gives an output – something like {XXXXXXXX……}, then you should be able to use that to back up to AD (while connected to corp network over VPN or over the LAN) – replace the {XXXXXXXXXXX…..} with whatever output you got from the previous command line.
+manage-bde -protectors $env:SystemDrive -adbackup -id ‘{XXXXXXXXXXXXX……………………………………}’
+
+ 
+
+Wait a few minutes for the changes to replicate in AD and check if it got backed up. Let me know if that doesn’t work for you.
+
+
+
+========================
+PS C:\> Enter-PSSession -ComputerName CB2CMCSTWAH53LT -Credential convergys\fs_jene9505
+[CB2CMCSTWAH53LT]: PS C:\Users\FS_jene9505\Documents> (Get-BitLockerVolume -MountPoint $env:SystemDrive).keyprotector | where {$_.Keyprotectortype -eq 'RecoveryPassword'} | Select-Object -ExpandProperty KeyProtectorID
+{ED3FF00D-B3A5-4611-8C2A-D1B499BF210A}
+[CB2CMCSTWAH53LT]: PS C:\Users\FS_jene9505\Documents> manage-bde -protectors $env:SystemDrive -adbackup -id `{ED3FF00D-B3A5-4611-8C2A-D1B499BF210A}'
+BitLocker Drive Encryption: Configuration Tool version 10.0.19041
+Copyright (C) 2013 Microsoft Corporation. All rights reserved.
+
+Recovery information was successfully backed up to Active Directory.
+[CB2CMCSTWAH53LT]: PS C:\Users\FS_jene9505\Documents> Exit-PSSession
+PS C:\>

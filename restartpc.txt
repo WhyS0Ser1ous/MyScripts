@@ -1,0 +1,48 @@
+=================================================
+$username = "convergys\fs_jene9505"
+$password = "Welcome12345#@!%"
+$secstr = New-Object -TypeName System.Security.SecureString
+$password.ToCharArray() | ForEach-Object {$secstr.AppendChar($_)}
+$cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $secstr
+
+$pcnames = Get-Content "C:\PC-Name.txt"
+ForEach ($pc in $pcnames) {
+Try {
+	$restart = Restart-Computer -ComputerName $pc -Credential $cred -Force
+	$x = "$pc has been restarted!"
+	return $x
+}Catch {
+	$y = "$pc failed to reboot!"
+	return $y
+	}
+}
+
+
+===============================================
+
+$servers = Get-Content "C:\HostName.txt"
+$cred = Get-Credential -UserName "convergys\fs_jene9505" -Message "Enter WMI credentials"
+ForEach ($server in $servers) {
+Try {
+$IP =  Restart-Computer -ComputerName $server -Credential $cred -Force
+$x = "$server - | - Rebooted"
+Write-Host($x) -ForegroundColor green
+}
+Catch {
+$y = "$server - | - Failed to reboot"
+Write-Host($y) -ForegroundColor red
+}
+}
+
+
+$pcnames = Get-Content "C:\HostName.txt"
+ForEach ($pc in $pcnames) {
+Try {
+	Get-ADComputer -Identity $pc | Move-ADObject -TargetPath "OU=Computers,OU=ENS,OU=Administrative,OU=ASI,DC=phil,DC=convergys,DC=com"
+	$x = "$pc has been moved!"
+	return $x
+}Catch {
+	$y = "$pc failed to moved!"
+	return $y
+	}
+}

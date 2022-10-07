@@ -1,0 +1,22 @@
+# Credential 1
+>> $username = "convergys\fs_jene9505"
+>> $password = "Blue@CNX12345!!"
+>> $secureStringPwd = $password | ConvertTo-SecureString -AsPlainText -Force
+>> $creds = New-Object System.Management.Automation.PSCredential -ArgumentList $username, $secureStringPwd
+>>
+>> # Credential 2
+>> $username2 = "phil\jene9505"
+>> $password2 = "Welcome12345#@!%"
+>> $secureStringPwd2 = $password2 | ConvertTo-SecureString -AsPlainText -Force
+>> $creds2 = New-Object System.Management.Automation.PSCredential -ArgumentList $username2, $secureStringPwd2
+>>
+>> $servers = Get-Content "C:\Users\jene9505\Documents\HostName.txt"
+>> ForEach ($server in $servers) {
+>> $str = $server.Split("-")
+>> $leftStr =  $str[0]
+>> $rightStr =  $str[1]
+>> $scriptBlock = { param($rightStr,$creds2) Rename-Computer -NewName $rightStr -DomainCredential $creds2 -Force -Restart }
+>> $s = New-PSSession -ComputerName $leftStr -Credential $creds
+>> Invoke-Command -Session $s -ScriptBlock $scriptBlock -ArgumentList $rightStr,$creds2
+>> Write-Host($leftStr + " updated to " + $rightStr) -ForegroundColor green
+>> }

@@ -1,0 +1,1 @@
+Invoke-Command -ComputerName CB210IT6469A -ScriptBlock { tzutil /s "Eastern Standard Time" }

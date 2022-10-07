@@ -1,0 +1,11 @@
+Phil-Admin
+
+(1) VPN Gateway: https://vpn-rch.convergys.com
+(2) VPN Gateway: https://vpn-mk23.convergys.com/1591819309
+(3) VPN Gateway: https://vpn-cdc3.convergys.com/1591819309
+
+runas /profile /user:phil\rroj8922 cmd
+runas /profile /user:concentrix\charelgane.ypon cmd
+
+odcvn1.concentrix.com/1591819309
+Welcome@CNX12345

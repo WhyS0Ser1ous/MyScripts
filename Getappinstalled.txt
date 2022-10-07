@@ -1,0 +1,43 @@
+PS C:\WINDOWS\system32> Enter-PSSession -ComputerName PIP09CMCST9154 -Credential phil\jene9505
+[PIP09CMCST9154]: PS C:\Users\jene9505\Documents> Get-WmiObject -Class Win32_Product
+==========================All app installed===========================================
+Enter-PSSession -ComputerName PIPJORZLAB-PC -Credential phil\jene9505
+[PIPJORZLAB-PC]: PS C:\Users\jene9505\Documents> Get-WmiObject -Class Win32_Product | where vendor -eq Verint | select Name, Version
+
+Name                     Version
+----                     -------
+Desktop Resources Verint 15.2.0.14
+Playback                 15.2.0.215
+==========================Single app installed===========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

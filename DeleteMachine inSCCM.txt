@@ -1,0 +1,12 @@
+$Computers = Get-Content "C:\Users\jene9505\Documents\HostName.txt"
+$SCCMServer = "cdcaw200.na.convergys.com" 
+$sitename = "CAS" 
+
+ 
+ForEach ($computer in $Computers) { 
+$comp = gwmi -cn $SCCMServer -namespace root\sms\site_$($sitename) -class sms_r_system -filter "Name='$($computer)'"
+# Output to screen 
+Write-Host "$computer with resourceID $($comp.ResourceID) will be deleted"  
+# Delete the computer account 
+$comp.delete() 
+} 

@@ -1,0 +1,11 @@
+$servers = Get-Content "C:\Users\jene9505\Documents\HostName.txt"                
+$cred = Get-Credential -UserName "PHIL\jene9505" -Message "Enter WMI credentials"
+ForEach ($server in $servers) {                
+Invoke-Command -ComputerName $server -ScriptBlock {                
+$RegistryPath = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+$Name         = 'Userinit'
+$Value        = 'C:\CaptureService\Screen Capture Module\wcapwlistener.exe'                
+Set-ItemProperty -Path $RegistryPath -Name $Name -Value $Value -Force 
+} -Credential $cred                                            
+echo $server "Userinit has been updated."                                            
+}

@@ -1,0 +1,13 @@
+Sample:
+
+Steps:
+1. Enter-PSSession -ComputerName PIPJORZLAB-PC -Credential phil\jene9505
+2. New-PSDrive -Name Source -PSProvider FileSystem -Root \\PIPJORZz-PC\Installers -Credential phil\jene9505
+3. Copy-Item Source:\PRS -Destination C:\ -Recurse
+4. Remove-PSDrive Source
+5. Start-Process -FilePath "PRS.bat" -WorkingDirectory "C:\PRS"
+6. Exit-PSSession
+
+Optional: Then wait for the PC to boot for PRS remediation.
+
+

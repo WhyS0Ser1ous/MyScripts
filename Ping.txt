@@ -1,0 +1,12 @@
+$servers = Get-Content "C:\Users\jene9505\Documents\HostName.txt"
+ForEach ($server in $servers) {
+Try {
+$IP = ((Test-Connection -ea stop -Count 1 -comp $server).IPV4Address).IPAddresstoString
+$x = "$server - UP - $($IP)"
+Write-Host($x) -ForegroundColor green
+}
+Catch {
+$y = "$server - Down - Offline"
+Write-Host($y) -ForegroundColor red
+}
+}

@@ -1,0 +1,2 @@
+$s1 = New-PSSession -ComputerName CB210CMCXMBAU03 -Credential convergys\fs_jene9505
+Copy-Item -Path "C:\csg\wccad\wccad.ini" -Destination "C:\" -FromSession $s1

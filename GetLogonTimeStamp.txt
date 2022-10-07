@@ -1,0 +1,15 @@
+$servers = Get-Content "D:\PC-Name.txt"
+$Credential = Get-Credential -UserName "convergys\fs_jene9505" -Message "Enter WMI credentials"
+ForEach ($server in $servers) {
+Try {
+$IP = Get-ADComputer $server -Server phil.convergys.com -Properties * -Credential $Credential | select @{n='lastLogonTimestamp;e={[DateTime]::FromFileTime($_.lastLogonTimestamp)}
+$x = "$server - | - $($IP)"
+Write-Host($x) -ForegroundColor green
+}
+Catch {
+$y = "$server - | - Down"
+Write-Host($y) -ForegroundColor red
+}
+}
+
+

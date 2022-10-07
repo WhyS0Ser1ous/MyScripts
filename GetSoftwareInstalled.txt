@@ -1,0 +1,1 @@
+Invoke-Command -ComputerName CB206SPR6219 -ScriptBlock { Get-WmiObject -ClassName win32_product | Select-Object Name, packagename, version | Where Name -Match 'Citrix'} -credential convergys\fs_jene9505

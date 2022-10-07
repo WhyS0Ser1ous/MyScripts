@@ -1,0 +1,1 @@
+echo 21stJun@Endp01nt| "C:\Program Files\Palo Alto Networks\Traps\cytool.exe" Protect Disable

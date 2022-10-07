@@ -1,0 +1,3 @@
+Invoke-Command -ComputerName PIPJORZ-PC -ScriptBlock {
+gwmi Win32_UserProfile | Select-Object @{ label = 'Username'; expression = { $PSItem.LocalPath -replace '.*\\' } }, @{Name='LastUsed';Expression={$_.ConvertToDateTime($_.LastUseTime)}}
+}

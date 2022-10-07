@@ -1,0 +1,101 @@
+BdeHdCfg.exe -target default -quiet
+
+Powershell.exe -executionpolicy bypass -file "\\phil.convergys.com\sysvol\phil.convergys.com\policies\{34175C92-C41A-4E33-BD93-0A94C21150BF}\Machine\Scripts\Shutdown\Enablebitlocker.ps1"
+Powershell.exe -executionpolicy bypass -file "\\phil.convergys.com\sysvol\phil.convergys.com\policies\{34175C92-C41A-4E33-BD93-0A94C21150BF}\Machine\Scripts\Shutdown\recoveryKey.ps1"
+
+
+unaha ng BDWelcome1
+then kanang ikaduha after reboot
+
+
+========================================
+del c:\windows\logs\cnx-bitlocker.log
+New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\FVE
+New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\FVE -Name "OSActiveDirectoryBackup" -value 1 -Force
+New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\FVE -Name "OSActiveDirectoryInfoToStore" -value 1 -Force
+New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\FVE -Name "OSRequireActiveDirectoryBackup" -value 1 -Force
+New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\FVE -Name "FDVActiveDirectoryBackup" -value 1 -Force
+New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\FVE -Name "OSRecovery" -value 1 -Force
+$BV = (Get-BitLockerVolume -MountPoint c).VolumeStatus
+switch ($BV) {
+    "FullyEncrypted" {
+        $bProtected = (Get-BitLockerVolume -MountPoint c).ProtectionStatus
+        if ($bProtected -eq "On") {
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Fully encrypted/protected when checked" >> c:\windows\logs\cnx-bitlocker.log
+        } else {
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Fully encrypted when checked, but protection is not active" >> c:\windows\logs\cnx-bitlocker.log
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Activating protection" >> c:\windows\logs\cnx-bitlocker.log
+            manage-bde -on C:
+            $derp = 0
+            while ((Get-BitLockerVolume -MountPoint c).ProtectionStatus -ne "On" -And $derp -lt 10) {
+                Sleep 2
+                $derp = $derp + 1
+            }
+            $bProtected = (Get-BitLockerVolume -MountPoint c).ProtectionStatus
+            if ($bProtected -eq "On") {
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - BitLocker protection has been activated" >> c:\windows\logs\cnx-bitlocker.log
+            } else {
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - BitLocker protection activation failed, login on the network/VPN and try again" >> c:\windows\logs\cnx-bitlocker.log
+                exit 10006
+            }
+        }
+        exit 0;
+    } "EncryptionInProgress" {
+        while ((Get-BitlockerVolume c:).VolumeStatus -ne "FullyEncrypted") {
+            Sleep 60
+        }
+        $bProtected = (Get-BitLockerVolume -MountPoint c).ProtectionStatus
+        if ($bProtected -eq "On") {
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Fully encrypted/protected" >> c:\windows\logs\cnx-bitlocker.log
+        } else {
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Fully encrypted when checked, but protection is not active" >> c:\windows\logs\cnx-bitlocker.log
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Activating protection" >> c:\windows\logs\cnx-bitlocker.log
+            manage-bde -on C:
+            $derp = 0
+            while ((Get-BitLockerVolume -MountPoint c).ProtectionStatus -ne "On" -And $derp -lt 10) {
+                Sleep 2
+                $derp = $derp + 1
+            }
+            $bProtected = (Get-BitLockerVolume -MountPoint c).ProtectionStatus
+            if ($bProtected -eq "On") {
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - BitLocker protection has been activated" >> c:\windows\logs\cnx-bitlocker.log
+            } else {
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - BitLocker protection activation failed, login on the network/VPN and try again" >> c:\windows\logs\cnx-bitlocker.log
+                exit 10007
+            }
+        }
+        exit 0
+    } "FullyDecrypted" {
+        Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - HDD FullyDecrypted" >> c:\windows\logs\cnx-bitlocker.log
+        $tpm = get-wmiobject win32_tpm -namespace "root\cimv2\security\microsofttpm"
+        if ( ($env:firmware_type -eq "Legacy") -and ($tpm.SpecVersion -like "*2.0*") ) {
+            Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Unable to encrypt due to TPM 2 and Legacy Boot Mode" >> c:\windows\logs\cnx-bitlocker.log
+            exit 10005
+        }
+        switch ((Get-TPM).TpmPresent) {
+            $true {
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - TPM Present - initializing" >> c:\windows\logs\cnx-bitlocker.log
+                Initialize-TPM
+                if ((Get-TPM).TpmReady -eq $false) {
+                    echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - TPM initialization failed. Exiting" >> c:\windows\logs\cnx-bitlocker.log
+                    exit 10002
+                }
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - TPM ready" >> c:\windows\logs\cnx-bitlocker.log           
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - HDD FullyDecrypted. Enabling Bitlocker" >> c:\windows\logs\cnx-bitlocker.log
+                $ret = (Enable-BitLocker -MountPoint "C:" -RecoveryPasswordProtector -EncryptionMethod Aes256 -SkipHardwaretest)
+                if ($ret -eq $null) {
+                    echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Enable-Bitlocker failed. Exiting" >> c:\windows\logs\cnx-bitlocker.log
+                    exit 10003
+                }
+                while ((Get-BitlockerVolume c:).VolumeStatus -ne "FullyEncrypted") {
+                    Sleep 60
+                }
+                    Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - Encryption complete" >> c:\windows\logs\cnx-bitlocker.log
+                exit 0
+            } $false {
+                Echo "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - No TPM found, exiting" >> c:\windows\logs\cnx-bitlocker.log
+                exit 10001
+                }
+        }
+    }
+}s

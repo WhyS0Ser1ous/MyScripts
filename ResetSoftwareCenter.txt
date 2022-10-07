@@ -1,0 +1,4 @@
+Powershell.exe Invoke-WmiMethod -Namespace root\CCM -Class SMS_Client -Name SetClientProvisioningMode -ArgumentList $false
+
+wmic /namespace:\\root\ccm path SMS_Client CALL ResetPolicy 1 /NOINTERACTIVE
+

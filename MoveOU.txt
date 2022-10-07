@@ -1,0 +1,6 @@
+$computers = Get-Content C:\Users\jene9505\Documents\HostName.txt
+$TargetOU = "OU=Computers,OU=ENS,OU=Administrative,OU=ASI,DC=phil,DC=convergys,DC=com"
+ForEach($computer in $computers){
+Get-ADComputer $computer |
+Move-ADObject -TargetPath $TargetOU
+}

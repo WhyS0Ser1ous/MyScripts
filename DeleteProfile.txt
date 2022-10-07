@@ -1,0 +1,8 @@
+# Delete for a specific user
+Get-CimInstance -Class Win32_UserProfile | Where-Object { $_.LocalPath.split('\')[-1] -eq 'UserA' } | Remove-CimInstance
+
+# Delete base on LastUseTime
+Get-WMIObject -class Win32_UserProfile | Where-Object {(!$_.Special) -and ($_.ConvertToDateTime($_.LastUseTime) -lt (Get-Date).AddDays(-5))} | Remove-WmiObject
+
+# Get User LastUseTime
+gwmi Win32_UserProfile | Select-Object @{ label = 'Username'; expression = { $PSItem.LocalPath -replace '.*\\' } }, @{Name='LastUsed';Expression={$_.ConvertToDateTime($_.LastUseTime)}}
